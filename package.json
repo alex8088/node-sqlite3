@@ -1,13 +1,16 @@
 {
   "name": "sqlite3",
   "description": "Asynchronous, non-blocking SQLite3 bindings",
-  "version": "4.0.6",
-  "homepage": "http://github.com/alex8088/node-sqlite3",
-  "author": "alex.wei",
+  "version": "4.0.9",
+  "homepage": "https://github.com/mapbox/node-sqlite3",
+  "author": {
+    "name": "MapBox",
+    "url": "https://mapbox.com/"
+  },
   "binary": {
     "module_name": "node_sqlite3",
     "module_path": "./lib/binding/{node_abi}-{platform}-{arch}",
-    "host": "https://github.com/alex8088/node-sqlite3/releases/download/",
+    "host": "https://mapbox-node-binary.s3.amazonaws.com",
     "remote_path": "./{name}/v{version}/{toolset}/",
     "package_name": "{node_abi}-{platform}-{arch}.tar.gz"
   },
@@ -31,7 +34,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git://github.com/alex8088/node-sqlite3.git"
+    "url": "git://github.com/mapbox/node-sqlite3.git"
   },
   "dependencies": {
     "nan": "^2.12.1",
@@ -45,7 +48,7 @@
     "mocha": "^5.2.0"
   },
   "scripts": {
-    "install": "node-pre-gyp install --fallback-to-build",
+    "install": "node-pre-gyp install --build-from-source",
     "pretest": "node test/support/createdb.js",
     "test": "mocha -R spec --timeout 480000",
     "pack": "node-pre-gyp package"

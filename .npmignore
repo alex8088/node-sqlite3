@@ -17,4 +17,4 @@ local.env
 setup.sh
 cloudformation/ci.template.js
 appveyor.yml
-deps.bak.7z
+.vscode

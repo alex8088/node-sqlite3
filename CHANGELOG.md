@@ -1,6 +1,6 @@
 # Changelog
 
-
-## 4.0.5
-- Upgrade node-sqlite3([change log](https://github.com/mapbox/node-sqlite3/blob/master/CHANGELOG.md)) to 4.0.5 and SQLite to 3.26.0
-
+## 4.0.9
+- Fork node-sqlite3 4.0.9 based on SQLite 3.28.0
+- Support SQLcipher 4.2.0
+- Support OpenSSL 1.1.1

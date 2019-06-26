@@ -49,13 +49,13 @@ db.close();
 
 # SQLCipher
 
-A copy of the source for SQLCipher 4.0.1 is bundled, which is based on SQLite 3.26.0.
+A copy of the source for SQLCipher 4.2.0 is bundled, which is based on SQLite 3.28.0.
 
 ### OpenSSL
 
 SQLCipher depends on OpenSSL. When using NodeJS, OpenSSL is provided by NodeJS itself. For Electron, we need to use our own copy.
 
-For Windows we bundle OpenSSL 1.0.2n. Pre-built libraries are used from https://slproweb.com/products/Win32OpenSSL.html.
+For Windows we bundle OpenSSL 1.1.1c. Pre-built libraries are used from https://slproweb.com/products/Win32OpenSSL.html.
 
 On Mac we build against OpenSSL installed via brew, but statically link it so that end-users do not need to install it.
 

@@ -37,46 +37,49 @@
         'defines': [
           'WIN32'
         ],
-        'conditions': [
-          ['target_arch == "ia32"', {
+        'conditions':[      # set libraries path for windows target_arch
+          ['target_arch == "ia32"',{
             'variables': {
-              'openssl_root%': 'OpenSSL-Win32',
+              'LIB_root%': 'LIB-Win32',
             }
-          }, {
+          }],
+          ['target_arch == "x64"',{
             'variables': {
-              'openssl_root%': 'OpenSSL-Win64',
+              'LIB_root%': 'LIB-Win64',
             }
           }]
         ],
         'link_settings': {
-          'libraries': [
-            '-llibeay32.lib',
-            '-lssleay32.lib',
-          ],
           'library_dirs': [
-            '<(SHARED_INTERMEDIATE_DIR)/sqlcipher-amalgamation-<@(sqlite_version)/<(openssl_root)'
+            '<(SHARED_INTERMEDIATE_DIR)/sqlcipher-amalgamation-<@(sqlite_version)/<(LIB_root)'
+          ],
+          'libraries': [
+            '-lCrypt32.Lib',      # Link Windows library setting (electron build requirements)
+            '-lWS2_32.Lib',       # Link Windows library setting (electron build requirements)
+            '-llibcrypto.lib',    # Customized openssl static library (remove /Zi disable debug)
+            '-llibssl.lib'        # Customized openssl static library (remove /Zi disable debug)
           ]
         }
-      },
-      'OS == "mac"', {
+      }],
+      ['OS == "mac"', {
         'variables': {
-          'openssl_root%': '/usr/local/opt/openssl'
+          'LIB_root%': '/usr/local/opt/openssl'
         },
         'link_settings': {
           'libraries': [
             # This statically links libcrypto, whereas -lcrypto would dynamically link it
-            '<(openssl_root)/lib/libcrypto.a'
+            '<(LIB_root)/lib/libcrypto.a'
           ]
         }
-      },
-      { # Linux
+      }],
+      ['OS == "linux"', {
         'link_settings': {
           'libraries': [
             '-lcrypto'
           ]
         }
       }]
-    ],
+    ]
   },
 
   'targets': [
@@ -93,7 +96,7 @@
           'outputs': [
             '<(SHARED_INTERMEDIATE_DIR)/sqlcipher-amalgamation-<@(sqlite_version)/sqlite3.c'
           ],
-          'action': ['python','./extract.py','./sqlcipher-amalgamation-<@(sqlite_version).tar.gz','<(SHARED_INTERMEDIATE_DIR)']
+          'action': ['<!(node -p "process.env.npm_config_python || \\"python\\"")','./extract.py','./sqlcipher-amalgamation-<@(sqlite_version).tar.gz','<(SHARED_INTERMEDIATE_DIR)']
         }
       ],
       'direct_dependent_settings': {
@@ -103,60 +106,54 @@
       },
     },
     {
-      "target_name": "copy_dll",
-      "type": "none",
-      "dependencies": [ "action_before_build" ],
-      "conditions": [
-        ["OS == \"win\"", {
-          "copies": [
-            {
-              "files": [
-                '<(SHARED_INTERMEDIATE_DIR)/sqlcipher-amalgamation-<@(sqlite_version)/>(openssl_root)/libeay32.dll',
-                '<(SHARED_INTERMEDIATE_DIR)/sqlcipher-amalgamation-<@(sqlite_version)/>(openssl_root)/msvcr120.dll'
-              ],
-              "destination": "<(PRODUCT_DIR)"
-            }
-          ],
-        }]
-      ]
-    },
-    {
       'target_name': 'sqlite3',
       'type': 'static_library',
       "conditions": [
-        ["OS == \"win\"", {
+        ['OS == "win"', {
           'include_dirs': [
             '<(SHARED_INTERMEDIATE_DIR)/sqlcipher-amalgamation-<@(sqlite_version)/',
-            '<(SHARED_INTERMEDIATE_DIR)/sqlcipher-amalgamation-<@(sqlite_version)/openssl-include/'
+            '<(SHARED_INTERMEDIATE_DIR)/sqlcipher-amalgamation-<@(sqlite_version)/include'
+          ],
+          'conditions':[        # Openssl opensslconf.h on Windows ia32 is different than x64.
+            ['target_arch == "ia32"',{
+              "copies": [{
+                "files": ["<(SHARED_INTERMEDIATE_DIR)/sqlcipher-amalgamation-<@(sqlite_version)/include/win32/opensslconf.h"],
+                "destination": "<(SHARED_INTERMEDIATE_DIR)/sqlcipher-amalgamation-<@(sqlite_version)/include/openssl"
+              }]
+            }],
+            ['target_arch == "x64"',{
+              "copies": [{
+                "files": ["<(SHARED_INTERMEDIATE_DIR)/sqlcipher-amalgamation-<@(sqlite_version)/include/win64/opensslconf.h"],
+                "destination": "<(SHARED_INTERMEDIATE_DIR)/sqlcipher-amalgamation-<@(sqlite_version)/include/openssl"
+              }]
+            }]
           ]
-        },
-        "OS == \"mac\"", {
+        }],
+        ['OS == "mac"', {
           'include_dirs': [
             '<(SHARED_INTERMEDIATE_DIR)/sqlcipher-amalgamation-<@(sqlite_version)/',
-            '>(openssl_root)/include'
+            '>(LIB_root)/include'
           ]
-        },
-        { # linux
+        }],
+        ['OS == "linux"', {
           'include_dirs': [
             '<(SHARED_INTERMEDIATE_DIR)/sqlcipher-amalgamation-<@(sqlite_version)/'
           ]
         }]
       ],
-
       'dependencies': [
-        'action_before_build',
-        'copy_dll'
+        'action_before_build'
       ],
       'sources': [
         '<(SHARED_INTERMEDIATE_DIR)/sqlcipher-amalgamation-<@(sqlite_version)/sqlite3.c'
       ],
       'direct_dependent_settings': {
-        'include_dirs': [
-          '<(SHARED_INTERMEDIATE_DIR)/sqlcipher-amalgamation-<@(sqlite_version)/'
-        ],
+        'include_dirs': [ '<(SHARED_INTERMEDIATE_DIR)/sqlcipher-amalgamation-<@(sqlite_version)/' ],
         'defines': [
           'SQLITE_THREADSAFE=1',
+          'HAVE_USLEEP=1',
           'SQLITE_ENABLE_FTS3',
+          'SQLITE_ENABLE_FTS4',
           'SQLITE_ENABLE_FTS5',
           'SQLITE_ENABLE_JSON1',
           'SQLITE_ENABLE_RTREE',
@@ -171,7 +168,9 @@
       'defines': [
         '_REENTRANT=1',
         'SQLITE_THREADSAFE=1',
+        'HAVE_USLEEP=1',
         'SQLITE_ENABLE_FTS3',
+        'SQLITE_ENABLE_FTS4',
         'SQLITE_ENABLE_FTS5',
         'SQLITE_ENABLE_JSON1',
         'SQLITE_ENABLE_RTREE',
