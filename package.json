@@ -45,7 +45,7 @@
     "mocha": "^5.2.0"
   },
   "scripts": {
-    "install": "node-pre-gyp install --fallback-to-build",
+    "install": "node-pre-gyp install --build-from-source",
     "pretest": "node test/support/createdb.js",
     "test": "mocha -R spec --timeout 480000",
     "pack": "node-pre-gyp package"
