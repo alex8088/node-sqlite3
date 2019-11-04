@@ -1,7 +1,7 @@
 {
   "name": "sqlite3",
   "description": "Asynchronous, non-blocking SQLite3 bindings",
-  "version": "4.0.6",
+  "version": "4.1.0",
   "homepage": "http://github.com/alex8088/node-sqlite3",
   "author": "alex.wei",
   "binary": {
